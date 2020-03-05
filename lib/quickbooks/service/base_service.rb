@@ -246,11 +246,11 @@ module Quickbooks
           headers['Accept-Encoding'] = HTTP_ACCEPT_ENCODING
         end
 
-        log "------ QUICKBOOKS-RUBY REQUEST ------"
-        log "METHOD = #{method}"
-        log "RESOURCE = #{url}"
-        log_request_body(body)
-        log "REQUEST HEADERS = #{headers.inspect}"
+        # log "------ QUICKBOOKS-RUBY REQUEST ------"
+        # log "METHOD = #{method}"
+        # log "RESOURCE = #{url}"
+        # log_request_body(body)
+        # log "REQUEST HEADERS = #{headers.inspect}"
 
         raw_response = case method
         when :get
@@ -264,12 +264,33 @@ module Quickbooks
         end
 
         response = Quickbooks::Service::Responses::OAuthHttpResponse.wrap(raw_response)
-        log "------ QUICKBOOKS-RUBY RESPONSE ------"
-        log "RESPONSE CODE = #{response.code}"
-        log_response_body(response)
-        if response.respond_to?(:headers)
-          log "RESPONSE HEADERS = #{response.headers}"
-        end
+
+        log(
+          <<~QBO_LOGGER
+            ***********************************************
+            ------------------ REQUEST --------------------
+            METHOD: #{method}
+            HEADERS: #{headers.inspect}
+            BODY:
+            #{request_body(body)}
+
+            ------------------ RESPONSE -------------------
+
+            RESPONSE CODE: #{response.code}
+            HEADERS: #{response.respond_to?(:headers) ? response.headers : 'NONE'}
+            BODY:
+            #{response_body(response)}
+
+            ***********************************************
+          QBO_LOGGER
+        )
+
+        # log "------ QUICKBOOKS-RUBY RESPONSE ------"
+        # log "RESPONSE CODE = #{response.code}"
+        # log_response_body(response)
+        # if response.respond_to?(:headers)
+        #   log "RESPONSE HEADERS = #{response.headers}"
+        # end
         check_response(response, request: body)
       end
 
@@ -363,21 +384,29 @@ module Quickbooks
 
       def log_response_body(response)
         log "RESPONSE BODY:"
+        log response_body(response)
+      end
+
+      def response_body(response)
         if is_json?
-          log ">>>>#{response.plain_body.inspect}"
+          ">>>>#{response.plain_body.inspect}"
         elsif is_pdf?
-          log("BODY is a PDF : not dumping")
+          "BODY is a PDF : not dumping"
         else
-          log(log_xml(response.plain_body))
+          log_xml(response.plain_body)
         end
       end
 
       def log_request_body(body)
         log "REQUEST BODY:"
+        log(request_body(body))
+      end
+
+      def request_body(body)
         if is_json?
-          log(body.inspect)
+          body.inspect
         elsif is_pdf?
-          log("BODY is a PDF : not dumping")
+          "BODY is a PDF : not dumping"
         else
           #multipart request for uploads arrive here in a Hash with UploadIO vals
           if body.is_a?(Hash)
@@ -391,10 +420,10 @@ module Quickbooks
                   end
                 end
               end
-              log("#{k}: #{val_content}")
+              "#{k}: #{val_content}"
             end
           else
-            log(log_xml(body))
+            log_xml(body)
           end
         end
       end
