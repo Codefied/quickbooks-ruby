@@ -246,12 +246,6 @@ module Quickbooks
           headers['Accept-Encoding'] = HTTP_ACCEPT_ENCODING
         end
 
-        # log "------ QUICKBOOKS-RUBY REQUEST ------"
-        # log "METHOD = #{method}"
-        # log "RESOURCE = #{url}"
-        # log_request_body(body)
-        # log "REQUEST HEADERS = #{headers.inspect}"
-
         raw_response = case method
         when :get
           oauth_get(url, headers)
@@ -267,7 +261,6 @@ module Quickbooks
 
         log(
           <<~QBO_LOGGER
-            ***********************************************
             ------------------ REQUEST --------------------
             METHOD: #{method}
             HEADERS: #{headers.inspect}
@@ -280,17 +273,9 @@ module Quickbooks
             HEADERS: #{response.respond_to?(:headers) ? response.headers : 'NONE'}
             BODY:
             #{response_body(response)}
-
-            ***********************************************
           QBO_LOGGER
         )
 
-        # log "------ QUICKBOOKS-RUBY RESPONSE ------"
-        # log "RESPONSE CODE = #{response.code}"
-        # log_response_body(response)
-        # if response.respond_to?(:headers)
-        #   log "RESPONSE HEADERS = #{response.headers}"
-        # end
         check_response(response, request: body)
       end
 
