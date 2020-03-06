@@ -266,11 +266,9 @@ module Quickbooks
             HEADERS: #{headers.inspect}
             BODY:
             #{request_body(body)}
-
             ------------------ RESPONSE -------------------
-
             RESPONSE CODE: #{response.code}
-            HEADERS: #{response.respond_to?(:headers) ? response.headers : 'NONE'}
+            HEADERS: #{response.respond_to?(:headers) ? response.headers : ''}
             BODY:
             #{response_body(response)}
           QBO_LOGGER
@@ -358,7 +356,12 @@ module Quickbooks
       def log_response_body(response)
         log "RESPONSE BODY:"
         log(response_body(response))
-        parse_xml(response.plain_body) unless is_pdf?
+
+        if is_json?
+          parse_json(response.plain_body)
+        else
+          parse_xml(response.plain_body) unless is_pdf?
+        end
       end
 
       def log_request_body(body)
