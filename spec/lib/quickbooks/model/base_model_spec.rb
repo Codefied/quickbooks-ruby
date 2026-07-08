@@ -127,4 +127,38 @@ describe "Quickbooks::Model::BaseModel" do
     end
   end
 
+  describe "#as_json (Rails 8 readiness)" do
+    # BaseModel's as_json delegates to ActiveSupport's Object#as_json, which a
+    # Rails host provides (BaseModel does not include Serializers::JSON itself).
+    require "active_support/core_ext/object/json"
+
+    it "excludes roxml internals" do
+      expect(foo_model.as_json).not_to have_key("roxml_references")
+    end
+
+    it "honors a caller-supplied :except" do
+      expect(foo_model.as_json(except: "baz")).not_to have_key("baz")
+    end
+
+    # Rails 8 freezes the options Hash passed through Array#as_json / Hash#as_json
+    # recursion (rails/rails@5f73931). This is the real-world trigger: a model
+    # nested in a container being serialized. BaseModel#as_json must dup before
+    # mutating options[:except] or these raise FrozenError.
+    # Passing options is what makes Array#as_json / Hash#as_json dup+FREEZE them
+    # before recursing into the element (activesupport 8: core_ext/object/json.rb).
+    it "serializes when nested in an Array (frozen-options recursion)" do
+      expect { [foo_model].as_json(except: "baz") }.not_to raise_error
+    end
+
+    it "serializes when nested in a Hash (frozen-options recursion)" do
+      expect { { "wrapper" => foo_model }.as_json(except: "baz") }.not_to raise_error
+    end
+
+    it "does not mutate a caller-supplied frozen options hash" do
+      frozen = { except: "baz" }.freeze
+      expect { foo_model.as_json(frozen) }.not_to raise_error
+      expect(frozen).to eq(except: "baz")
+    end
+  end
+
 end

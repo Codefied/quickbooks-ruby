@@ -20,7 +20,7 @@ module Quickbooks
       end
 
       def class_for_io
-        oauth.is_a?(OAuth2::AccessToken) ? Faraday::UploadIO : UploadIO
+        Faraday::Multipart::FilePart
       end
 
       def download(uploadId)

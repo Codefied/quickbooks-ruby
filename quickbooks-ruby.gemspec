@@ -14,13 +14,17 @@ Gem::Specification.new do |gem|
 
   gem.files = Dir['lib/**/*']
 
-  gem.add_dependency 'oauth2', '~>1.4'
+  # Faraday 2 requires Ruby >= 3.0; a Rails 8 host additionally requires >= 3.2.
+  gem.required_ruby_version = '>= 3.0'
+
+  gem.add_dependency 'oauth2', '~> 2.0'
   gem.add_dependency 'roxml', '~> 4.2'
-  gem.add_dependency 'activemodel', '> 4.0'
-  gem.add_dependency 'net-http-persistent'
+  gem.add_dependency 'activemodel', '> 4.0' # unpinned upper bound → allows Rails 8 (activemodel 8.x)
+  gem.add_dependency 'faraday-net_http_persistent', '~> 2.0' # Faraday 2 :net_http_persistent adapter (replaces the raw net-http-persistent gem)
   gem.add_dependency 'nokogiri'  # promiscuous mode
   gem.add_dependency 'multipart-post' # promiscuous mode
-  gem.add_dependency 'faraday', '< 2.0'
+  gem.add_dependency 'faraday', '~> 2.0'
+  gem.add_dependency 'faraday-multipart', '~> 1.0' # Faraday 2 extracted :multipart + UploadIO into this gem
 
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'simplecov'

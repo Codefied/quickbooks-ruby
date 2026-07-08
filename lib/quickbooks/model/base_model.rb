@@ -29,7 +29,10 @@ module Quickbooks
       end
 
       def as_json(options = nil)
-        options = {} if options.nil?
+        # Dup before mutating: Rails 8 freezes the options Hash passed through
+        # Array#as_json / Hash#as_json recursion (rails/rails@5f73931), so mutating
+        # options[:except] in place would raise FrozenError.
+        options = options ? options.dup : {}
         except_conditions = ["roxml_references"]
         except_conditions << options[:except]
         options[:except] = except_conditions.flatten.uniq.compact
