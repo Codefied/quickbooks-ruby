@@ -2,7 +2,9 @@ module Quickbooks
   module Service
     class ChangeService < BaseService
 
-      def url_for_query(query = nil, start_position = 1, max_results = 20)
+      # NOTE: signature must match BaseService#url_for_query (which fetch_collection
+      # calls with an options arg); CDC ignores the pagination/options args.
+      def url_for_query(query = nil, start_position = 1, max_results = 20, options = {})
         q = entity
         q = "#{q}&#{query}" if query.present?
 

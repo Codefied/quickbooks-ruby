@@ -7,6 +7,7 @@ require 'uri'
 require 'date'
 require 'forwardable'
 require 'oauth2'
+require 'faraday/multipart'
 require 'net/http/post/multipart'
 require 'quickbooks/util/collection'
 require 'quickbooks/util/logging'
@@ -188,7 +189,8 @@ require 'quickbooks/service/change_data_capture'
 require 'quickbooks/service/refund_receipt_change'
 
 # Register Faraday Middleware
-Faraday::Middleware.register_middleware :gzip => lambda { Gzip }
+# Faraday 2 dropped the lambda-thunk form; register the class directly.
+Faraday::Middleware.register_middleware(gzip: Gzip)
 
 module Quickbooks
   @@sandbox_mode = false
@@ -226,6 +228,9 @@ module Quickbooks
     end
 
     def http_adapter=(adapter)
+      # The :net_http_persistent adapter ships in its own gem under Faraday 2;
+      # require it lazily so the common :net_http path pays no load cost.
+      require 'faraday/net_http_persistent' if adapter.to_s == 'net_http_persistent'
       @@http_adapter = adapter
     end
 

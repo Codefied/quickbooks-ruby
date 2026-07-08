@@ -1,6 +1,7 @@
 # https://github.com/lostisland/faraday_middleware/blob/master/lib/faraday_middleware/gzip.rb
 
 require 'faraday'
+require 'zlib'
 
 # Middleware to automatically decompress response bodies. If the
 # "Accept-Encoding" header wasn't set in the request, this sets it to
@@ -12,8 +13,6 @@ require 'faraday'
 # - net_http_persistent on Ruby 2.0+
 # - em_http
 class Gzip < Faraday::Middleware
-  dependency 'zlib'
-
   ACCEPT_ENCODING = 'Accept-Encoding'.freeze
   CONTENT_ENCODING = 'Content-Encoding'.freeze
   CONTENT_LENGTH = 'Content-Length'.freeze
@@ -67,8 +66,9 @@ class Gzip < Faraday::Middleware
   end
 
   def brotli_inflate(body)
-    self.class.dependency 'brotli'
-
+    require 'brotli'
     Brotli.inflate(body)
+  rescue LoadError
+    raise LoadError, "Decoding a Brotli (Content-Encoding: br) response requires the 'brotli' gem. Add `gem 'brotli'` to your Gemfile."
   end
 end

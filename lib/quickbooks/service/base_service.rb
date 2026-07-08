@@ -47,15 +47,17 @@ module Quickbooks
       # end
 
       # [OAuth2] The default Faraday connection does not have gzip or multipart support.
-      # We need to reset the existing connection and build a new one.
+      # oauth2 2.0 builds the Faraday connection lazily from options[:connection_build]
+      # (Faraday 2 removed Connection#build), so inject our middleware stack there and
+      # reset the memoized connection so it is rebuilt on next use.
       def rebuild_connection!
-        @oauth.client.connection = nil
-        @oauth.client.connection.build do |builder|
+        @oauth.client.options[:connection_build] = proc do |builder|
           builder.use :gzip
           builder.request :multipart
           builder.request :url_encoded
           builder.adapter ::Quickbooks.http_adapter
         end
+        @oauth.client.connection = nil
       end
 
       def url_for_resource(resource)
@@ -229,7 +231,7 @@ module Quickbooks
         if metadata
           standalone_prefix = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
           meta_data_xml = "#{standalone_prefix}\n#{metadata.to_xml_ns.to_s}"
-          param_part = UploadIO.new(StringIO.new(meta_data_xml), "application/xml")
+          param_part = Faraday::Multipart::FilePart.new(StringIO.new(meta_data_xml), "application/xml")
           body['file_metadata_0'] = param_part
         end
 
@@ -374,7 +376,7 @@ module Quickbooks
             body.each do |k,v|
               messages << 'BODY PART:'
               val_content = v.inspect
-              if v.is_a?(UploadIO)
+              if v.is_a?(Faraday::Multipart::FilePart)
                 if v.content_type == 'application/xml'
                   if v.io.is_a?(StringIO)
                     val_content = log_xml(v.io.string)
