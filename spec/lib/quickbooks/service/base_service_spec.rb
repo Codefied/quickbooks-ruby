@@ -19,7 +19,7 @@ describe Quickbooks::Service::BaseService do
         uri = URI(subject.url_for_query(query))
 
         expect("#{uri.scheme}://#{uri.host}#{uri.path}").to eq("https://#{domain}/v3/company/1234/query")
-        expect(CGI.parse(uri.query)["query"]).to eq(["#{query} STARTPOSITION 1 MAXRESULTS 20"])
+        expect(URI.decode_www_form(uri.query).to_h["query"]).to eq("#{query} STARTPOSITION 1 MAXRESULTS 20")
       end
     end
 
@@ -247,7 +247,7 @@ describe Quickbooks::Service::BaseService do
     # printed form depends on Ruby's Hash#inspect spacing and on
     # Faraday::Utils.default_space_encoding (which oauth2 2.x flips globally), neither
     # of which this behaviour is about.
-    let(:expected_query) { ["SELECT * FROM Vendor STARTPOSITION 1 MAXRESULTS 20"] }
+    let(:expected_query) { "SELECT * FROM Vendor STARTPOSITION 1 MAXRESULTS 20" }
     let(:expected_headers) do
       {
         "Content-Type" => "application/xml",
@@ -271,7 +271,7 @@ describe Quickbooks::Service::BaseService do
         expect(captured.method).to eq(:get)
         expect(captured.body).to eq({})
         expect(captured.headers).to include(expected_headers)
-        expect(CGI.parse(URI(captured.url).query)["query"]).to eq(expected_query)
+        expect(URI.decode_www_form(URI(captured.url).query).to_h["query"]).to eq(expected_query)
       end
     end
 
