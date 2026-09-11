@@ -1,0 +1,8 @@
+<IntuitResponse xmlns="http://schema.intuit.com/finance/v3" time="2024-04-09T07:52:37.581-07:00">
+  <Fault type="ValidationFault">
+    <Error code="6000" element="">
+      <Message>A business validation error has occurred while processing your request</Message>
+      <Detail>Business Validation Error: An unexpected error occurred while accessing or saving your data.</Detail>
+    </Error>
+  </Fault>
+</IntuitResponse>

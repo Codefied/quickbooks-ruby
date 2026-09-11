@@ -76,6 +76,16 @@ describe Quickbooks::Service::BaseService do
       }
     end
 
+    it "should treat an empty element attribute as absent" do
+      xml = fixture('business_validation_empty_element_error.xml')
+      response = Struct.new(:code, :plain_body).new(400, xml)
+      expect { @service.send(:check_response, response, :request => xml) }.to raise_error { |error|
+        expect(error.element).to be_nil
+        expect(error.message).to_not start_with ":"
+        expect(error.message).to eq "A business validation error has occurred while processing your request:\n\tBusiness Validation Error: An unexpected error occurred while accessing or saving your data."
+      }
+    end
+
     it "should add request xml to request exception" do
       xml = fixture('generic_error.xml')
       xml2 = fixture('customer.xml')

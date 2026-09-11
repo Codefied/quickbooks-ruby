@@ -415,12 +415,13 @@ module Quickbooks
 
       def parse_and_raise_exception(options = {})
         err = parse_intuit_error
-        element_msg = err[:element] ? "#{err[:element]}: " : ""
+        element = err[:element].presence
+        element_msg = element ? "#{element}: " : ""
         ex = Quickbooks::IntuitRequestException.new("#{element_msg}#{err[:message]}:\n\t#{err[:detail]}")
         ex.code = err[:code]
         ex.detail = err[:detail]
         ex.type = err[:type]
-        ex.element = err[:element] if err[:element]
+        ex.element = element if element
         if is_json?
           ex.request_json = options[:request]
         else
