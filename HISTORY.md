@@ -1,3 +1,49 @@
+## 2.0.7 (2025-04-14)
+
+* Add ship from address reference to sales receipt #616. Thanks @rchekaluk
+* Dup as_json options if frozen (#625) Thanks @chrisrbnelson
+
+## 2.0.6 (2025-04-01)
+
+cherrypicking PRs from `master` branch. Releasing 2.0.6
+
+* Fix vendor and purchases preferences xml reader (#626). Thanks @katzenj
+* added pdf method to refund_receipt.rb (#617). Thanks @nicho1991
+
+
+## 2.0.5 (2024-07-25)
+
+* Added BCC field to Bill Model. Integrated the PR manually. https://github.com/ruckus/quickbooks-ruby/pull/614 Thanks @hammad-Ikhlaq-7vals
+
+## 2.0.4 (2024-07-23)
+
+* Loosen faraday-gzip to a version that can use > zlib-2.1.1 (#613). Thank you @technicalpickles
+
+## 2.0.3 (2023-07-12)
+
+cherry-picked `Fintechqb 1967 enable service level logging` from master
+
+## 2.0.2 (2022-12-28)
+
+* Update dependency on `faraday-gzip` to support JRuby (#594)
+
+## 2.0.1 (2022-12-27)
+
+Faraday Versions (#593)
+* Test against Faraday 1.x and 2.x
+* Faraday 1.x support for Quickbooks::Service::AccessToken#disconnect
+
+Thanks @jaredmoody and @ashkulz
+
+## 2.0 (2022-11-10)
+
+First release of 2.0+ branch:
+
+* Use Faraday 2.0 gem
+* Replace custom Faraday GZip implementation with `faraday-gzip` gem
+* Relax gemspec to allow OAuth2 v2.x gem
+* No longer support Ruby 2.5
+
 ## 1.0.21 (2022-04-26)
 
 * Add ability to download PDF of a Payment. (#577). Thanks @anaulin

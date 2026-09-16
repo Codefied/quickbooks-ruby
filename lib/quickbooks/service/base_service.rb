@@ -49,12 +49,11 @@ module Quickbooks
       # [OAuth2] The default Faraday connection does not have gzip or multipart support.
       # We need to reset the existing connection and build a new one.
       def rebuild_connection!
-        @oauth.client.connection = nil
-        @oauth.client.connection.build do |builder|
-          builder.use :gzip
-          builder.request :multipart
-          builder.request :url_encoded
-          builder.adapter ::Quickbooks.http_adapter
+        @oauth.client.connection = Faraday.new do |f|
+          f.request :multipart
+          f.request :gzip
+          f.request :url_encoded
+          f.adapter ::Quickbooks.http_adapter
         end
       end
 
@@ -229,7 +228,7 @@ module Quickbooks
         if metadata
           standalone_prefix = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
           meta_data_xml = "#{standalone_prefix}\n#{metadata.to_xml_ns.to_s}"
-          param_part = UploadIO.new(StringIO.new(meta_data_xml), "application/xml")
+          param_part = Faraday::UploadIO.new(StringIO.new(meta_data_xml), "application/xml")
           body['file_metadata_0'] = param_part
         end
 
@@ -374,7 +373,7 @@ module Quickbooks
             body.each do |k,v|
               messages << 'BODY PART:'
               val_content = v.inspect
-              if v.is_a?(UploadIO)
+              if v.is_a?(Faraday::UploadIO)
                 if v.content_type == 'application/xml'
                   if v.io.is_a?(StringIO)
                     val_content = log_xml(v.io.string)
@@ -416,10 +415,13 @@ module Quickbooks
 
       def parse_and_raise_exception(options = {})
         err = parse_intuit_error
-        ex = Quickbooks::IntuitRequestException.new("#{err[:message]}:\n\t#{err[:detail]}")
+        element = err[:element].presence
+        element_msg = element ? "#{element}: " : ""
+        ex = Quickbooks::IntuitRequestException.new("#{element_msg}#{err[:message]}:\n\t#{err[:detail]}")
         ex.code = err[:code]
         ex.detail = err[:detail]
         ex.type = err[:type]
+        ex.element = element if element
         if is_json?
           ex.request_json = options[:request]
         else
@@ -453,7 +455,7 @@ module Quickbooks
             end
             element_attr = error_element.attributes['element']
             if element_attr
-              error[:element] = code_attr.value
+              error[:element] = element_attr.try(:value)
             end
             error[:message] = error_element.xpath("//xmlns:Message").text
             error[:detail] = error_element.xpath("//xmlns:Detail").text
